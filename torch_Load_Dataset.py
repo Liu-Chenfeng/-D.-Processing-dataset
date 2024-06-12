@@ -25,7 +25,7 @@ class dir_BirdsDataset(Dataset):
         self.image_size = image_size
         self.transform = transform
 
-        # 从 root_dir 读取所有图像文件路径和相应标签
+        # 从 path_dir 读取所有图像文件路径和相应标签    Прочтите все пути к файлам изображений и соответствующие теги из path_dir
         self.image_paths = []
         self.labels = []
         for class_name in os.listdir(path_dir):
@@ -36,11 +36,11 @@ class dir_BirdsDataset(Dataset):
                         self.image_paths.append(os.path.join(class_path, img_name))
                         self.labels.append(class_name)
 
-        # 创建类名与数字标签的映射关系
+        # 创建类名与数字标签的映射关系    Создайте связь между именами классов и числовыми метками
         self.class_to_idx = {class_name: idx for idx, class_name in enumerate(sorted(set(self.labels)))}
         self.labels = [self.class_to_idx[label] for label in self.labels]
 
-        # Debug: 检查过滤后的数据框
+        # 检查过滤后的数据（数量）    Проверить отфильтрованные данные
         print(f"Found {len(self.image_paths)} images in directory '{self.path_dir}'.")
 
     def __len__(self):
@@ -52,7 +52,7 @@ class dir_BirdsDataset(Dataset):
 
         img_path = self.image_paths[idx]
 
-        # Debug: 输出图片路径调试信息
+        # 输出图片路径调试信息    Выведите путь к изображению
         # print(f"Attempting to load image: {img_path}")
 
         image = Image.open(img_path).convert('RGB')
@@ -92,10 +92,10 @@ class CSV_BirdsDataset(Dataset):
         self.split = split
         self.transform = transform
 
-        # 根据split过滤数据
+        # 根据split过滤数据    Фильтрация данных по split
         self.data_frame = self.data_frame[self.data_frame['data set'] == self.split]
 
-        # Debug: 检查过滤后的数据框
+        # 检查过滤后的数据框    Проверить отфильтрованные данные
         print(f"Filtered dataframe based on split '{self.split}':")
         print(self.data_frame.head())
 
@@ -105,11 +105,11 @@ class CSV_BirdsDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        # 构建图像文件的完整路径的
+        # 构建图像文件的完整路径    Полный путь к файлу образа
         img_name = os.path.join(self.root_dir, self.data_frame.iloc[idx, 1].strip().replace("/", os.sep))  # 统一路径分隔符
 
-        # Debug: 输出图片路径调试信息
-        #print(f"Attempting to load image: {img_name}")
+        # 输出图片路径调试信息    Выведите путь к изображению
+        print(f"Attempting to load image: {img_name}")
 
         # 处理文件文件名的拼写错误
         if not os.path.exists(img_name):
@@ -145,7 +145,7 @@ def CSV_load_dataset(path, batch_size, image_size, shuffle, split):
 
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
-    # 创建类别映射字典
+    # 创建类别映射字典    Создайте связь между именами классов и числовыми метками
     class_to_name = {row["class id"]: row["labels"] for _, row in pd.read_csv(path).iterrows()}
 
     return data_loader, class_to_name
@@ -158,6 +158,7 @@ image_size = (224, 224)
 shuffle = True
 split = "train"
 
+# 只能选择其中一种方法来运行!!!
 #data_loader, class_to_name = CSV_load_dataset(path, batch_size, image_size, shuffle, split)
 data_loader, class_to_name = dir_load_dataset(path_dir, batch_size, image_size, shuffle)
 
